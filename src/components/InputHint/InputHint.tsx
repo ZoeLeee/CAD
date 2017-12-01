@@ -2,7 +2,7 @@
  * @Author: Zoe 
  * @Date: 2017-12-01 10:25:11 
  * @Last Modified by: Zoe
- * @Last Modified time: 2017-12-01 17:31:11
+ * @Last Modified time: 2017-12-01 17:34:38
  * 命令行组件
  */
 
@@ -47,7 +47,11 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         //储存找到的相关命令
         let m_searchCommand: Array<string> = [];
         // console.log(m_inputValue);
-        if (!m_inputValue) { return };
+        if (!m_inputValue) 
+        {
+            this.setState({ searchCommand: [] })
+            return;
+        };
         this.state.commands.forEach((value: string) =>
         {
 
@@ -57,7 +61,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
             }
 
         })
-        this.setState({ searchCommand: m_searchCommand })
+        this.setState({ searchCommand: m_searchCommand });
         // console.log(m_searchCommand);
     }
     // 把输入命令添加到历史记录
