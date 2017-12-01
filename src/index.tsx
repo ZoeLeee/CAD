@@ -1,9 +1,13 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import './style.css';
-import { Hello } from "./components/Hello";
 
+import * as Blueprint from "@blueprintjs/core";
+import '../node_modules/@blueprintjs/core/dist/blueprint.css';
+import './assets/css/normalize.css';
+import { App } from "./components/app";
+
+// import { InputHint } from './components/Input-hint/InputHint';
 ReactDOM.render(
-    <Hello compiler="TypeScript" framework="React" />,
-    document.getElementById("example")
+    <App />,
+    document.getElementById("root")
 );

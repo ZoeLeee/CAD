@@ -1,0 +1,70 @@
+/*
+ * @Author: Zoe 
+ * @Date: 2017-12-01 10:25:21 
+ * @Last Modified by: Zoe
+ * @Last Modified time: 2017-12-01 16:44:38
+ * 命令框样式  
+ */
+
+html {
+  font-size: 10px;
+  background: #212830;
+  font-family: 'Raleway', sans-serif;
+}
+
+#input-hint {
+  width: 100%;
+}
+
+
+/* 提示命令 */
+
+.hint {
+  display: inline-block;
+  margin: 0 .8rem 0 .4rem;
+}
+
+
+/* 命令输入框 */
+
+#input-hint input {
+  border: none;
+  outline: medium;
+  width: 80%;
+}
+
+#input-hint .input {
+  width: 100%;
+  border: 1px solid #000000;
+  background: #fff;
+  padding: 0.2rem;
+  font-size: 10px;
+}
+
+#input-hint .input a {
+  border: 1px solid #C8E8F7;
+}
+
+#input-hint .input a:hover {
+  background: #C8E8F7;
+}
+
+#input-hint .history-command {
+  list-style: none;
+  width: 15rem;
+  background: #fff;
+  margin: 0 2rem;
+  padding: 0;
+}
+
+#input-hint .history-command>li {
+  padding: .2rem 3rem;
+}
+
+#input-hint .history-command>li:hover {
+  background: #eaf0f3
+}
+
+#input-hint span.pt-icon-standard {
+  font-size: 10px;
+}
