@@ -2,7 +2,7 @@
  * @Author: Zoe 
  * @Date: 2017-12-01 10:25:21 
  * @Last Modified by: Zoe
- * @Last Modified time: 2017-12-01 16:44:38
+ * @Last Modified time: 2017-12-01 17:31:41
  * 命令框样式  
  */
 
@@ -49,7 +49,7 @@ html {
   background: #C8E8F7;
 }
 
-#input-hint .history-command {
+#input-hint ul {
   list-style: none;
   width: 15rem;
   background: #fff;

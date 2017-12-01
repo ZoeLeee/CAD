@@ -2,7 +2,7 @@
  * @Author: Zoe 
  * @Date: 2017-12-01 10:25:11 
  * @Last Modified by: Zoe
- * @Last Modified time: 2017-12-01 16:37:47
+ * @Last Modified time: 2017-12-01 17:31:11
  * 命令行组件
  */
 
@@ -19,7 +19,8 @@ interface ITodoItemState
     command: string,
     historyCommands: Array<string>,
     isShow: any,
-    commands: Array<string>
+    commands: Array<string>,
+    searchCommand: Array<string>
 }
 export class InputHint extends React.Component<InputHintProps, ITodoItemState>
 {
@@ -32,7 +33,8 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 command: "",
                 historyCommands: [], //历史命令
                 isShow: { display: 'none' },
-                commands: ['LINE', 'LINETYPE', 'TR', 'TRANSLATE', 'TEXT1', 'TEXT2', 'TEXT3', 'TEXT4']
+                commands: ['LINE', 'LINETYPE', 'TR', 'TRANSLATE', 'TEXT1', 'TEXT2', 'TEXT3', 'TEXT4'],
+                searchCommand: []
             }
     }
     //获取input输入的命令
@@ -42,8 +44,21 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         let m_inputValue = e.target.value.toUpperCase();
 
         this.setState({ command: m_inputValue });
-        let m_search = this.state.commands.indexOf(m_inputValue);
-        console.log(m_search);
+        //储存找到的相关命令
+        let m_searchCommand: Array<string> = [];
+        // console.log(m_inputValue);
+        if (!m_inputValue) { return };
+        this.state.commands.forEach((value: string) =>
+        {
+
+            if (value.indexOf(m_inputValue) === 0)
+            {
+                m_searchCommand.push(value);
+            }
+
+        })
+        this.setState({ searchCommand: m_searchCommand })
+        // console.log(m_searchCommand);
     }
     // 把输入命令添加到历史记录
     public handleAddHistory = (e: any) =>
@@ -72,7 +87,14 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
 
         return (
             <div id="input-hint">
-
+                <ul className="recommand-command">
+                    {
+                        this.state.searchCommand.map((item: any, index: number) =>
+                        {
+                            return <li key={index}>{item}</li>
+                        })
+                    }
+                </ul>
                 <div className="input">
                     <a onClick={this.handleShowHistoryCommand}>
                         <span className="pt-icon-standard pt-icon-sort-asc pt-intent-primary"></span>
