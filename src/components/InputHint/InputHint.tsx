@@ -1,8 +1,8 @@
 /*
  * @Author: Zoe 
  * @Date: 2017-12-01 10:25:11 
- * @Last Modified by: cx
- * @Last Modified time: 2017-12-02 11:36:38
+ * @Last Modified by: mikey.zhaopeng
+ * @Last Modified time: 2017-12-02 11:39:01
  * 命令行组件
  */
 
@@ -103,7 +103,14 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                         <span className="pt-icon-standard pt-icon-sort-asc pt-intent-primary"></span>
                     </a>
                     <span className="hint">命令</span>
-                    <input type="text" placeholder="请输入命令" ref="command" onKeyPress={this.handleAddHistory} onChange={this.handleGetInputValue} value={this.state.command} />
+                    <input
+                        type="text"
+                        placeholder="请输入命令"
+                        ref="command"
+                        onKeyPress={this.handleAddHistory}
+                        onChange={this.handleGetInputValue}
+                        value={this.state.command}
+                    />
                 </div>
                 <ul className="history-command" style={this.state.isShow}>
                     {
