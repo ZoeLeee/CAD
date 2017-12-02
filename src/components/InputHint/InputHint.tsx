@@ -38,10 +38,10 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
             }
     }
     //获取input输入的命令
-    public handleGetInputValue = (e: any) =>
+    public handleGetInputValue = (e: React.FormEvent<HTMLInputElement>) =>
     {
         // 输入的命令
-        let m_inputValue = e.target.value.toUpperCase();
+        let m_inputValue = e.currentTarget.value.toUpperCase();
 
         this.setState({ command: m_inputValue });
         //储存找到的相关命令

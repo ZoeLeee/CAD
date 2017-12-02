@@ -10,9 +10,10 @@ import * as React from "react";
 export interface HelloProps { compiler: string; framework: string; }
 
 export class Hello extends React.Component<HelloProps, {}> {
-    render() {
-        return <h1> 
-            <i className ="fa fa-file"></i>
+    render()
+    {
+        return <h1>
+            <i className="fa fa-file"></i>
         </h1>;
     }
 }
