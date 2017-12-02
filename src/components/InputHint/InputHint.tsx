@@ -1,8 +1,8 @@
 /*
  * @Author: Zoe 
  * @Date: 2017-12-01 10:25:11 
- * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2017-12-02 11:39:01
+ * @Last Modified by: Zoe
+ * @Last Modified time: 2017-12-02 22:20:42
  * 命令行组件
  */
 
@@ -17,7 +17,7 @@ interface ITodoItemState
 {
     command: string,
     historyCommands: Array<string>,
-    isShow: React.CSSProperties,
+    isShow: { display: string },
     commands: Array<string>,
     searchCommand: Array<string>
 }
@@ -30,13 +30,13 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         this.state =
             {
                 command: "",
-                historyCommands: [], //历史命令
+                historyCommands: [], // 历史命令
                 isShow: { display: 'none' },
                 commands: ['LINE', 'LINETYPE', 'TR', 'TRANSLATE', 'TEXT1', 'TEXT2', 'TEXT3', 'TEXT4'],
                 searchCommand: []
             }
     }
-    //获取input输入的命令
+    // 获取input输入的命令
     public handleGetInputValue = (e: React.FormEvent<HTMLInputElement>) =>
     {
         // 输入的命令
@@ -45,29 +45,43 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         this.setState({ command: m_inputValue });
         //储存找到的相关命令
         let m_searchCommand: Array<string> = [];
-        // console.log(m_inputValue);
+        // 
         if (!m_inputValue) 
         {
             this.setState({ searchCommand: [] })
             return;
-        };
+        }
+        // 动态生成正则表达式
+        let m_searchReg: RegExp = new RegExp('');
+        // 拼接动态正则表达式
+        let m_comTmp: string = '^' + m_inputValue.split('').join('\\w*') + '\\w*$';
+        // 加g全局搜索 结果会交替是为什么？test()不用加g？
+        m_searchReg = new RegExp(m_comTmp, 'i');
+
         this.state.commands.forEach((value: string) =>
         {
 
-            if (value.indexOf(m_inputValue) === 0)
+            // if (value.indexOf(m_inputValue) === 0)
+            // {
+            //     m_searchCommand.push(value);
+            // }
+            if (m_searchReg.test(value))
             {
-                m_searchCommand.push(value);
-            }
 
+                m_searchCommand.push(value);
+
+            }
         })
         this.setState({ searchCommand: m_searchCommand });
-        // console.log(m_searchCommand);
+        // 
     }
     // 把输入命令添加到历史记录
-    public handleAddHistory = (e: any) =>
+    public handleAddHistory = (e: { charCode: number }) =>  
     {
         let m_newHistotyCommand: Array<string> = this.state.historyCommands;
-        if (e.key === 'Enter')
+
+        //enter-13,space-32
+        if (e.charCode === 13 || e.charCode === 32)
         {
             m_newHistotyCommand.push(this.state.command);
             this.setState({ historyCommands: m_newHistotyCommand });
