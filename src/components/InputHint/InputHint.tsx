@@ -1,11 +1,10 @@
 /*
  * @Author: Zoe 
  * @Date: 2017-12-01 10:25:11 
- * @Last Modified by: Zoe
- * @Last Modified time: 2017-12-01 17:34:38
+ * @Last Modified by: cx
+ * @Last Modified time: 2017-12-02 11:36:38
  * 命令行组件
  */
-
 
 import * as React from "react";
 import './InputHint.css'
@@ -18,7 +17,7 @@ interface ITodoItemState
 {
     command: string,
     historyCommands: Array<string>,
-    isShow: any,
+    isShow: React.CSSProperties,
     commands: Array<string>,
     searchCommand: Array<string>
 }
