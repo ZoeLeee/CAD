@@ -60,11 +60,20 @@ html {
 #input-hint .history-command>li {
   padding: .2rem 3rem;
 }
-
 #input-hint .history-command>li:hover {
   background: #eaf0f3
 }
 
 #input-hint span.pt-icon-standard {
   font-size: 10px;
+}
+#input-hint .recommend-command
+{
+  color:#fff;
+  background-color: #777777;
+}
+#input-hint .recommend-command>li.hover,
+#input-hint .recommend-command>li:hover
+{
+  background-color: #94ACCE;
 }

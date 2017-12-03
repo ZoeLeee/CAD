@@ -8,6 +8,7 @@
 
 import * as React from "react";
 import './InputHint.css'
+import { HtmlHTMLAttributes } from "react";
 
 export interface InputHintProps 
 {
@@ -15,11 +16,12 @@ export interface InputHintProps
 }
 interface ITodoItemState
 {
-    command: string,
-    historyCommands: Array<string>,
-    isShow: { display: string },
-    commands: Array<string>,
-    searchCommand: Array<string>
+    command: string, //输入的命令
+    historyCommands: Array<string>,// 历史命令
+    isShow: React.CSSProperties,// 是否显示历史命令框
+    commands: Array<string>, //命令库
+    searchCommand: Array<string>, //联想命令库
+    executeCommand: string //所执行的命令
 }
 export class InputHint extends React.Component<InputHintProps, ITodoItemState>
 {
@@ -30,10 +32,11 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         this.state =
             {
                 command: "",
-                historyCommands: [], // 历史命令
+                historyCommands: [],
                 isShow: { display: 'none' },
                 commands: ['LINE', 'LINETYPE', 'TR', 'TRANSLATE', 'TEXT1', 'TEXT2', 'TEXT3', 'TEXT4'],
-                searchCommand: []
+                searchCommand: [],
+                executeCommand: ''
             }
     }
     // 获取input输入的命令
@@ -88,6 +91,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
             this.setState({ command: '' });
         }
     }
+    // 是否显示历史命令
     public handleShowHistoryCommand = () =>
     {
 
@@ -99,16 +103,87 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
             this.setState({ isShow: { display: 'none' } })
         }
     }
+    // 确认执行命令
+    public handleConfirmCommand = (e: any) =>
+    {
+        this.setState({ executeCommand: e.target.innerHTML });
+        this.handleShowHistoryCommand();
+        this.setState({ searchCommand: [], command: '' });
+    }
+    //方向键选择命令
+    public handleSelectCommand = (e: any) =>
+    {
+        console.log(123);
+    }
+    componentDidMount()
+    {
+        let m_ul: any;
+        let m_li: Array<any>;
+        let m_liHover: any; // 当前hoverde li
+        document.body.addEventListener('keydown', (e) =>
+        {
+            m_ul = this.refs.recommend;
+            m_li = m_ul.children;
+            m_liHover = m_ul.querySelector('.hover');
+            //↑-38 ，↓-40
+            if (e.keyCode === 38)
+            {
+                //如果找不到hover的元素，就给第一个hover
+                if (!m_liHover)
+                {
+                    m_ul.firstElementChild.className = 'hover';
+                } else
+                {
+                    if (m_liHover.previousElementSibling)
+                    {
+                        m_liHover.className = '';
+                        m_liHover.previousElementSibling.className = 'hover'
+                    } else
+                    {
+                        m_liHover.className = '';
+                        m_ul.lastElementChild.className = 'hover';
+                    }
+
+                }
+
+            } else if (e.keyCode === 40)
+            {
+                if (!m_liHover)
+                {
+                    m_ul.lastElementChild.className = 'hover';
+                } else
+                {
+                    if (m_liHover.nextElementSibling)
+                    {
+                        m_liHover.className = '';
+                        m_liHover.nextElementSibling.className = 'hover';
+                    } else
+                    {
+                        m_liHover.className = '';
+                        m_ul.firstElementChild.className = 'hover';
+                    }
+                }
+            } else if (e.keyCode === 13 || e.keyCode === 32)
+            {
+                this.setState({ executeCommand: m_liHover.innerHTML });
+                this.setState({ searchCommand: [], command: '' });
+            }
+
+        })
+    }
     public render() 
     {
 
         return (
-            <div id="input-hint">
-                <ul className="recommand-command">
+            <div id="input-hint" onKeyPress={this.handleSelectCommand}>
+                <ul
+                    className="recommend-command"
+
+                    ref='recommend'>
                     {
                         this.state.searchCommand.map((item: any, index: number) =>
                         {
-                            return <li key={index}>{item}</li>
+                            return <li onClick={this.handleConfirmCommand} key={index}>{item}</li>
                         })
                     }
                 </ul>
@@ -116,7 +191,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                     <a onClick={this.handleShowHistoryCommand}>
                         <span className="pt-icon-standard pt-icon-sort-asc pt-intent-primary"></span>
                     </a>
-                    <span className="hint">命令</span>
+                    <span className="hint">{this.state.executeCommand}</span>
                     <input
                         type="text"
                         placeholder="请输入命令"
@@ -130,7 +205,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                     {
                         this.state.historyCommands.map((item: any, index: number) =>
                         {
-                            return <li key={index}>{item}</li>
+                            return <li onClick={this.handleConfirmCommand} key={index}>{item}</li>
                         })
                     }
                 </ul>
