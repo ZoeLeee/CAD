@@ -12,8 +12,13 @@ html {
   font-family: 'Raleway', sans-serif;
 }
 
+a {
+  color: #fff;
+}
+
 #input-hint {
-  width: 100%;
+  width: 80%;
+  position: fixed;
 }
 
 
@@ -33,16 +38,28 @@ html {
   width: 80%;
 }
 
-#input-hint .input {
-  width: 100%;
-  border: 1px solid #000000;
-  background: #fff;
-  padding: 0.2rem;
+#input-hint .input,
+#input-hint .set {
+  display: inline-block;
+  height: 2rem;
+  line-height: 2rem;
+  /* border: 1px solid #000000; */
   font-size: 10px;
+}
+
+#input-hint .input {
+  width: 95%;
+  background: #fff;
 }
 
 #input-hint .input a {
   border: 1px solid #C8E8F7;
+}
+
+#input-hint .set {
+  width: 5%;
+  color: #fff;
+  background: #484A4C;
 }
 
 #input-hint .input a:hover {
@@ -60,6 +77,7 @@ html {
 #input-hint .history-command>li {
   padding: .2rem 3rem;
 }
+
 #input-hint .history-command>li:hover {
   background: #eaf0f3
 }
@@ -67,13 +85,13 @@ html {
 #input-hint span.pt-icon-standard {
   font-size: 10px;
 }
-#input-hint .recommend-command
-{
-  color:#fff;
+
+#input-hint .recommend-command {
+  color: #fff;
   background-color: #777777;
 }
+
 #input-hint .recommend-command>li.hover,
-#input-hint .recommend-command>li:hover
-{
+#input-hint .recommend-command>li:hover {
   background-color: #94ACCE;
 }

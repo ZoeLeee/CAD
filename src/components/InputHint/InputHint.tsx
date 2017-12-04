@@ -1,15 +1,7 @@
-/*
- * @Author: Zoe 
- * @Date: 2017-12-01 10:25:11 
- * @Last Modified by: Zoe
- * @Last Modified time: 2017-12-02 22:20:42
- * 命令行组件
- */
+import { executeAction } from 'mobx/lib/core/action';
+import './InputHint.css';
 
-import * as React from "react";
-import './InputHint.css'
-import { HtmlHTMLAttributes } from "react";
-
+import * as React from 'react';
 export interface InputHintProps 
 {
 
@@ -21,10 +13,15 @@ interface ITodoItemState
     isShow: React.CSSProperties,// 是否显示历史命令框
     commands: Array<string>, //命令库
     searchCommand: Array<string>, //联想命令库
-    executeCommand: string //所执行的命令
+    executeCommand: string, //所执行的命令
+    viceCommand: string,//副命令
+    pos: React.CSSProperties// 命令框位置
 }
 export class InputHint extends React.Component<InputHintProps, ITodoItemState>
 {
+    private m_recommendUl: HTMLUListElement;
+    private m_liHover: Element; // 当前hoverde li
+    private m_box: HTMLElement;
     public state: ITodoItemState;
     constructor(props: InputHintProps)
     {
@@ -36,7 +33,9 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 isShow: { display: 'none' },
                 commands: ['LINE', 'LINETYPE', 'TR', 'TRANSLATE', 'TEXT1', 'TEXT2', 'TEXT3', 'TEXT4'],
                 searchCommand: [],
-                executeCommand: ''
+                executeCommand: '',
+                viceCommand: '',
+                pos: { left: 0, top: 0 }
             }
     }
     // 获取input输入的命令
@@ -58,38 +57,84 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         let m_searchReg: RegExp = new RegExp('');
         // 拼接动态正则表达式
         let m_comTmp: string = '^' + m_inputValue.split('').join('\\w*') + '\\w*$';
-        // 加g全局搜索 结果会交替是为什么？test()不用加g？
         m_searchReg = new RegExp(m_comTmp, 'i');
 
-        this.state.commands.forEach((value: string) =>
+        //如果没有确认执行命令，将显示关联的命令
+        if (!this.state.executeCommand)
         {
-
-            // if (value.indexOf(m_inputValue) === 0)
-            // {
-            //     m_searchCommand.push(value);
-            // }
-            if (m_searchReg.test(value))
+            this.state.commands.forEach((value: string) =>
             {
 
-                m_searchCommand.push(value);
+                // if (value.indexOf(m_inputValue) === 0)
+                // {
+                //     m_searchCommand.push(value);
+                // }
+                if (m_searchReg.test(value))
+                {
 
-            }
-        })
-        this.setState({ searchCommand: m_searchCommand });
-        // 
+                    m_searchCommand.push(value);
+
+                }
+            })
+            this.setState({ searchCommand: m_searchCommand });
+            document.body.addEventListener('keydown', this.handleSelectCommand);
+        } else
+        {
+            document.body.removeEventListener('keydown', this.handleSelectCommand);
+        }
+        // if (this.m_recommendUl)
+        // {
+        //     this.m_liHover = this.m_recommendUl.firstElementChild;
+        //     console.log(this.m_liHover);
+        //     this.m_liHover.className = 'hover';
+
+        // }
+
+
     }
-    // 把输入命令添加到历史记录
-    public handleAddHistory = (e: { charCode: number }) =>  
+    // 把确认输入命令,并添加到历史记录
+    public handleConfirmInput = (e: React.KeyboardEvent<HTMLInputElement>) =>  
     {
         let m_newHistotyCommand: Array<string> = this.state.historyCommands;
-
-        //enter-13,space-32
-        if (e.charCode === 13 || e.charCode === 32)
+        //  enter-13,space-32
+        if (this.state.command)
         {
-            m_newHistotyCommand.push(this.state.command);
-            this.setState({ historyCommands: m_newHistotyCommand });
-            this.setState({ command: '' });
+            if (e.charCode === 13 || e.charCode === 32)
+            {
+
+                //如果没有确认执行命令，运行当前输入的命令，并将命令添加到历史
+                if (!this.state.executeCommand)
+                {
+                    if (this.state.commands.indexOf(this.state.command) !== -1)
+                    {
+                        this.setState({ executeCommand: this.state.command });
+                        m_newHistotyCommand.unshift(this.state.command);
+                        this.setState({ historyCommands: m_newHistotyCommand });
+                        this.setState({ command: '' });
+                    }
+                } else
+                { // 已经有首条命令了，直接执行后续命名
+
+                    this.setState({ viceCommand: '放弃(U)' });
+                    this.setState({ command: '' });
+                    if (this.state.command === 'U')
+                    {
+                        this.setState({ viceCommand: '' })
+                    }
+                }
+
+            }
+        } else // 如果没输入内容按空格将用最近用过的命令
+        {
+            if (e.charCode === 32)
+            {
+                this.setState({ executeCommand: this.state.historyCommands[0] });
+            }
         }
+
+
+
+
     }
     // 是否显示历史命令
     public handleShowHistoryCommand = () =>
@@ -104,106 +149,152 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         }
     }
     // 确认执行命令
-    public handleConfirmCommand = (e: any) =>
+    public handleConfirmCommand = (e: React.MouseEvent<HTMLLIElement>) =>
     {
-        this.setState({ executeCommand: e.target.innerHTML });
+        this.setState({ executeCommand: e.currentTarget.innerHTML });
         this.handleShowHistoryCommand();
         this.setState({ searchCommand: [], command: '' });
     }
     //方向键选择命令
-    public handleSelectCommand = (e: any) =>
+    public handleSelectCommand = (e: KeyboardEvent) =>
     {
-        console.log(123);
-    }
-    componentDidMount()
-    {
-        let m_ul: any;
-        let m_li: Array<any>;
-        let m_liHover: any; // 当前hoverde li
-        document.body.addEventListener('keydown', (e) =>
+        let ulContainer: HTMLUListElement;
+        let m_li: HTMLCollection;
+        let historyCommands = this.state.historyCommands;
+        ulContainer = this.m_recommendUl;
+        m_li = ulContainer.children;
+
+        this.m_liHover = ulContainer.querySelector('.hover');
+
+        //↑-38 ，↓-40 esc-27
+        if (e.keyCode === 27) //按esc键
         {
-            m_ul = this.refs.recommend;
-            m_li = m_ul.children;
-            m_liHover = m_ul.querySelector('.hover');
-            //↑-38 ，↓-40
-            if (e.keyCode === 38)
+            this.setState({ executeCommand: '', command: '' });
+        } else if (e.keyCode === 38)
+        {
+            //如果找不到hover的元素，就给第一个hover
+            if (!this.m_liHover)
             {
-                //如果找不到hover的元素，就给第一个hover
-                if (!m_liHover)
+                ulContainer.firstElementChild.className = 'hover';
+            } else
+            {
+                if (this.m_liHover.previousElementSibling)
                 {
-                    m_ul.firstElementChild.className = 'hover';
+                    this.m_liHover.className = '';
+                    this.m_liHover.previousElementSibling.className = 'hover'
                 } else
                 {
-                    if (m_liHover.previousElementSibling)
-                    {
-                        m_liHover.className = '';
-                        m_liHover.previousElementSibling.className = 'hover'
-                    } else
-                    {
-                        m_liHover.className = '';
-                        m_ul.lastElementChild.className = 'hover';
-                    }
-
+                    this.m_liHover.className = '';
+                    ulContainer.lastElementChild.className = 'hover';
                 }
 
-            } else if (e.keyCode === 40)
+            }
+
+        } else if (e.keyCode === 40)
+        {
+            if (!this.m_liHover)
             {
-                if (!m_liHover)
+                ulContainer.lastElementChild.className = 'hover';
+            } else
+            {
+                if (this.m_liHover.nextElementSibling)
                 {
-                    m_ul.lastElementChild.className = 'hover';
+                    this.m_liHover.className = '';
+                    this.m_liHover.nextElementSibling.className = 'hover';
                 } else
                 {
-                    if (m_liHover.nextElementSibling)
-                    {
-                        m_liHover.className = '';
-                        m_liHover.nextElementSibling.className = 'hover';
-                    } else
-                    {
-                        m_liHover.className = '';
-                        m_ul.firstElementChild.className = 'hover';
-                    }
+                    this.m_liHover.className = '';
+                    ulContainer.firstElementChild.className = 'hover';
                 }
-            } else if (e.keyCode === 13 || e.keyCode === 32)
+            }
+        } else if (e.keyCode === 13 || e.keyCode === 32)
+        {
+
+            if (this.m_liHover)
             {
-                this.setState({ executeCommand: m_liHover.innerHTML });
+
+                if (!this.state.executeCommand)
+                {
+                    historyCommands.push(this.m_liHover.innerHTML);
+                    this.setState({ historyCommands });
+                }
+                this.setState({ executeCommand: this.m_liHover.innerHTML });
                 this.setState({ searchCommand: [], command: '' });
             }
 
-        })
+        }
+    }
+    //移动命令框
+    private moveBox = (x: number, y: number) =>
+    {
+        if (y >= window.innerHeight - 20)
+        {
+            this.m_box.parentElement.style.width = '100%';
+            this.setState({ pos: { left: 0, bottom: 0 } });
+        } else if (y < 20)
+        {
+            this.m_box.parentElement.style.width = '100%';
+            this.setState({ pos: { left: 0, top: 0 } });
+        } else
+        {
+            this.m_box.parentElement.style.width = '80%';
+            this.setState({ pos: { left: x + 'px', top: y + 'px' } });
+        }
+    }
+    public dragBox = () =>
+    {
+        let event = (e: MouseEvent) =>
+        {
+            this.moveBox(e.clientX, e.clientY);
+        };
+        this.m_box.ondrag = this.m_box.ondragend = event;
+    }
+    componentDidMount()
+    {
+        this.dragBox();
     }
     public render() 
     {
 
         return (
-            <div id="input-hint" onKeyPress={this.handleSelectCommand}>
+            <div id="input-hint" style={this.state.pos}>
                 <ul
                     className="recommend-command"
-
-                    ref='recommend'>
+                    ref={ul => { this.m_recommendUl = ul }}
+                >
                     {
-                        this.state.searchCommand.map((item: any, index: number) =>
+                        this.state.searchCommand.map((item: string, index: number) =>
                         {
                             return <li onClick={this.handleConfirmCommand} key={index}>{item}</li>
                         })
                     }
                 </ul>
+                <div
+                    className="set"
+                    ref={el => { this.m_box = el }}
+                >
+                    <a href="javascript:;" >
+                        <span className="pt-icon-standard pt-icon-drag-handle-vertical"></span>
+                    </a>
+                </div>
                 <div className="input">
                     <a onClick={this.handleShowHistoryCommand}>
                         <span className="pt-icon-standard pt-icon-sort-asc pt-intent-primary"></span>
                     </a>
                     <span className="hint">{this.state.executeCommand}</span>
+                    <span className="hint">{this.state.viceCommand}</span>
                     <input
                         type="text"
                         placeholder="请输入命令"
                         ref="command"
-                        onKeyPress={this.handleAddHistory}
+                        onKeyPress={this.handleConfirmInput}
                         onChange={this.handleGetInputValue}
                         value={this.state.command}
                     />
                 </div>
                 <ul className="history-command" style={this.state.isShow}>
                     {
-                        this.state.historyCommands.map((item: any, index: number) =>
+                        this.state.historyCommands.map((item: string, index: number) =>
                         {
                             return <li onClick={this.handleConfirmCommand} key={index}>{item}</li>
                         })

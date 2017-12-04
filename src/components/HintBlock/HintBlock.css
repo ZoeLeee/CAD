@@ -1,0 +1,14 @@
+#hint-block {
+    position: fixed;
+}
+
+#hint-block input {
+    background: #fff;
+    width: 2rem;
+    height: 1rem;
+}
+
+#hint-block lable {
+    display: inline-block;
+    background: #999999;
+}

@@ -1,4 +1,5 @@
-import * as React from "react";
+import HintBlock from './HintBlock/HintBlock';
+import * as React from 'react';
 import { InputHint } from './InputHint/InputHint';
 
 
@@ -8,8 +9,10 @@ export class App extends React.Component
     {
         return (
             <div>
+                <HintBlock />
                 <InputHint />
             </div>
         );
     }
+
 }
