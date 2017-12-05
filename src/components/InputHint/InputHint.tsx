@@ -24,6 +24,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
     private m_liHover: Element; // 当前hoverde li
     private m_box: HTMLElement;
     public state: ITodoItemState;
+    private m_i: number = 0; //选择历史命令索引
     constructor(props: InputHintProps)
     {
         super(props);
@@ -63,6 +64,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         //如果没有确认执行命令，将显示关联的命令
         if (!this.state.executeCommand)
         {
+
             this.state.commands.forEach((value: string) =>
             {
 
@@ -82,50 +84,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
     // 把确认输入命令,并添加到历史记录
     public handleConfirmInput = (e: React.KeyboardEvent<HTMLInputElement>) =>  
     {
-        let m_newHistotyCommand: Array<string> = this.state.historyCommands;
 
-        //  enter-13,space-32
-        if (this.state.command)
-        {
-            if (e.charCode === 13 || e.charCode === 32)
-            {
-
-                //如果没有确认执行命令，运行当前输入的命令，并将命令添加到历史
-                if (!this.state.executeCommand)
-                {
-                    if (this.state.commands.indexOf(this.state.command) !== -1)
-                    {
-                        m_newHistotyCommand.unshift(this.state.command);
-                        this.setState(
-                            {
-                                executeCommand: this.state.command,
-                                command: '',
-                                historyCommands: m_newHistotyCommand,
-                                searchCommand: []
-                            }
-                        );
-                    }
-                }
-                else // 已经有首条命令了，直接执行后续命名
-                {
-
-                    this.setState({ viceCommand: [{ title: '放弃', keyboard: 'U' }] });
-                    this.setState({ command: '' });
-                    if (this.state.command === 'U')
-                    {
-                        this.setState({ viceCommand: [] })
-                    }
-                }
-
-            }
-        }
-        else // 如果没输入内容按空格将用最近用过的命令
-        {
-            if (e.charCode === 32)
-            {
-                this.setState({ executeCommand: this.state.historyCommands[0] });
-            }
-        }
 
     }
     // 是否显示历史命令
@@ -139,6 +98,11 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         {
             this.setState({ isShow: { display: 'none' } })
         }
+        document.onclick = () =>
+        {
+            this.setState({ isShow: { display: 'none' } });
+            document.onclick = null;
+        }
     }
     // 确认执行命令
     public handleConfirmCommand = (e: React.MouseEvent<HTMLLIElement>) =>
@@ -150,63 +114,132 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
     //绑定键盘命令
     public handleSelectCommand = (e: KeyboardEvent) =>
     {
-        let ulContainer: HTMLUListElement = this.m_recommendUl;
-        let m_li: HTMLCollection;
+        console.log('watch key');
+        let m_li: HTMLCollection = this.m_recommendUl.children;;
         let historyCommands = this.state.historyCommands;
-        m_li = ulContainer.children;
 
-        this.m_liHover = ulContainer.querySelector('.hover');
+        this.m_liHover = this.m_recommendUl.querySelector('.hover');
+        //放下键选择命令函数,des-方向
+        let selectCommand = (des: string) => 
+        {
+            let el1: Element;
+            let el2: Element;
+            if (des === 'up')
+            {
+                el1 = this.m_liHover.previousElementSibling;
+                el2 = this.m_recommendUl.lastElementChild;
+                //将选中的命令显示到命令框
 
+            }
+            else
+            {
+                el1 = this.m_liHover.nextElementSibling;
+                el2 = this.m_recommendUl.firstElementChild;
+                //将选中的命令显示到命令框
+
+            }
+            if (el1)
+            {
+                this.m_liHover.className = '';
+                el1.className = 'hover';
+                this.m_liHover = el1;
+            }
+            else
+            {
+                this.m_liHover.className = '';
+                el2.className = 'hover';
+                this.m_liHover = el2;
+
+            }
+            this.setState({ command: this.m_liHover.innerHTML });
+        }
         //↑-38 ，↓-40 esc-27
         if (e.keyCode === 27) //按esc键,清空所有命令
         {
-            this.setState({ executeCommand: '', command: '', searchCommand: [], viceCommand: [] });
+            this.setState(
+                {
+                    executeCommand: '',
+                    command: '',
+                    searchCommand: [],
+                    viceCommand: [],
+                    isShow: { display: 'none' }
+                }
+            );
+            console.log('esc');
         }
-
+        //如果有关联命令执行以下逻辑
         if (this.state.searchCommand.length > 0)
         {
 
             if (e.keyCode === 38)
             {
-                if (this.m_liHover.previousElementSibling)
-                {
-                    this.m_liHover.className = '';
-                    this.m_liHover.previousElementSibling.className = 'hover'
-                }
-                else
-                {
-                    this.m_liHover.className = '';
-                    ulContainer.lastElementChild.className = 'hover';
-                }
+
+                selectCommand('up');
+
             }
             else if (e.keyCode === 40)
             {
-                if (this.m_liHover.nextElementSibling)
-                {
-                    this.m_liHover.className = '';
-                    this.m_liHover.nextElementSibling.className = 'hover';
-                }
-                else
-                {
-                    this.m_liHover.className = '';
-                    ulContainer.firstElementChild.className = 'hover';
-                }
+                selectCommand('down');
+
             }
-            else if (e.keyCode === 13 || e.keyCode === 32)
+
+
+            if (e.keyCode === 13 || e.keyCode === 32)
             {
+                //如果没有确认执行命令，运行当前输入的命令，并将命令添加到历史
                 if (!this.state.executeCommand)
                 {
-                    historyCommands.push(this.m_liHover.innerHTML);
+                    historyCommands.unshift(this.m_liHover.innerHTML);
+
                     this.setState({ historyCommands });
+                    this.setState(
+                        {
+                            executeCommand: this.m_liHover.innerHTML,
+                            searchCommand: [],
+                            command: ''
+                        }
+                    );
                 }
-                this.setState({ executeCommand: this.m_liHover.innerHTML });
-                this.setState({ searchCommand: [], command: '' });
+                else // 已经有首条命令了，直接执行后续命名
+                {
+                    this.setState({ viceCommand: [{ title: '放弃', keyboard: 'U' }] });
+                    this.setState({ command: '' });
+                    if (this.state.command === 'U')
+                    {
+                        this.setState({ viceCommand: [] })
+                    }
+                }
+
             }
-        } else
+        } else //没有关联命令执行
         {
-            if (e.keyCode === 38)
+            // 如果存在历史命令,方向键切换历史命令
+            if (this.state.historyCommands.length > 0)
             {
-                console.log(this.state.historyCommands[0]);
+                if (e.keyCode === 40)
+                {
+
+                    if (this.m_i >= this.state.historyCommands.length) this.m_i = 0;
+                    this.setState({ command: this.state.historyCommands[this.m_i] });
+                    this.m_i++;
+                }
+                else if (e.keyCode === 38)
+                {
+
+                    if (this.m_i < 0) this.m_i = this.state.historyCommands.length - 1;
+                    this.setState({ command: this.state.historyCommands[this.m_i] });
+                    this.m_i--;
+                }
+
+                if (e.keyCode === 13 || e.keyCode === 32)
+                {
+                    this.setState(
+                        {
+                            executeCommand: this.state.command,
+                            command: ''
+                        }
+                    );
+                }
             }
         }
 
@@ -214,27 +247,43 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
     //移动命令框
     private moveBox = (x: number, y: number) =>
     {
-        if (y >= window.innerHeight - 20)
-        {
-            this.m_box.parentElement.style.width = '100%';
-            this.setState({ pos: { left: 0, bottom: 0 } });
-        } else if (y < 20)
-        {
-            this.m_box.parentElement.style.width = '100%';
-            this.setState({ pos: { left: 0, top: 0 } });
-        } else
-        {
-            this.m_box.parentElement.style.width = '80%';
-            this.setState({ pos: { left: x + 'px', top: y + 'px' } });
-        }
+
     }
     public dragBox = () =>
     {
-        let event = (e: MouseEvent) =>
+        let isMove: Boolean = false;//能否移动
+        this.m_box.onmousedown = () =>
         {
-            this.moveBox(e.clientX, e.clientY);
-        };
-        this.m_box.ondrag = this.m_box.ondragend = event;
+            isMove = true;
+        }
+        this.m_box.onmouseup = () =>
+        {
+            isMove = false;
+            document.onmousemove = null;
+        }
+        document.onmousemove = (e: MouseEvent) =>
+        {
+            if (isMove)
+            {
+                if (e.clientY >= window.innerHeight - 20)
+                {
+                    this.m_box.parentElement.style.width = '100%';
+                    this.setState({ pos: { left: 0, bottom: 0 } });
+                } else if (e.clientY < 20)
+                {
+                    this.m_box.parentElement.style.width = '100%';
+                    this.setState({ pos: { left: 0, top: 0 } });
+                } else
+                {
+                    this.m_box.parentElement.style.width = '80%';
+                    this.setState({ pos: { left: e.clientX + 'px', top: e.clientY + 'px' } });
+                }
+            }
+            else
+            {
+
+            }
+        }
     }
     public handleClick = (e: React.MouseEvent<HTMLElement>) =>
     {
@@ -263,10 +312,15 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
     }
     componentDidUpdate()
     {
-        if (this.m_recommendUl.firstElementChild)
+        //当没有选中命令时，默认第一个选中
+        if (!this.m_recommendUl.querySelector('.hover'))
         {
-            this.m_recommendUl.firstElementChild.className = 'hover';
+            if (this.m_recommendUl.firstElementChild)
+            {
+                this.m_recommendUl.firstElementChild.className = 'hover';
+            }
         }
+
     }
     public render()
     {
@@ -289,7 +343,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                     className="set"
                     ref={el => { this.m_box = el }}
                 >
-                    <a href="javascript:;" >
+                    <a >
                         <span className="pt-icon-standard pt-icon-drag-handle-vertical"></span>
                     </a>
                 </div>
