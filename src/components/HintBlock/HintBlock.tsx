@@ -28,7 +28,7 @@ export default class HintBlock extends React.Component<HintBlockProps, HintBlock
     {
         document.addEventListener('click', (e) =>
         {
-            console.log(123);
+
             this.setState({ pos: { display: 'block', left: e.clientX + 20 + 'px', top: e.clientY + 20 + 'px' } });
             document.addEventListener('mousemove', (e) =>
             {

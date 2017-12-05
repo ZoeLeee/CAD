@@ -26,7 +26,15 @@ a {
 
 .hint {
   display: inline-block;
-  margin: 0 .8rem 0 .4rem;
+  margin-right: .2rem;
+}
+
+.vice-hint {
+  background: #D2D2D2;
+}
+
+.vice-hint>span {
+  color: blue
 }
 
 
@@ -91,7 +99,6 @@ a {
   background-color: #777777;
 }
 
-#input-hint .recommend-command>li.hover,
-#input-hint .recommend-command>li:hover {
+#input-hint .recommend-command>li.hover {
   background-color: #94ACCE;
 }

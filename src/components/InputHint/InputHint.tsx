@@ -1,7 +1,8 @@
-import { executeAction } from 'mobx/lib/core/action';
 import './InputHint.css';
 
 import * as React from 'react';
+import { DOMElement, ReactElement } from 'react';
+
 export interface InputHintProps 
 {
 
@@ -14,7 +15,7 @@ interface ITodoItemState
     commands: Array<string>, //命令库
     searchCommand: Array<string>, //联想命令库
     executeCommand: string, //所执行的命令
-    viceCommand: string,//副命令
+    viceCommand: Array<{ title: string, keyboard: string }>,//副命令
     pos: React.CSSProperties// 命令框位置
 }
 export class InputHint extends React.Component<InputHintProps, ITodoItemState>
@@ -34,7 +35,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 commands: ['LINE', 'LINETYPE', 'TR', 'TRANSLATE', 'TEXT1', 'TEXT2', 'TEXT3', 'TEXT4'],
                 searchCommand: [],
                 executeCommand: '',
-                viceCommand: '',
+                viceCommand: [],
                 pos: { left: 0, top: 0 }
             }
     }
@@ -65,10 +66,6 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
             this.state.commands.forEach((value: string) =>
             {
 
-                // if (value.indexOf(m_inputValue) === 0)
-                // {
-                //     m_searchCommand.push(value);
-                // }
                 if (m_searchReg.test(value))
                 {
 
@@ -77,18 +74,8 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 }
             })
             this.setState({ searchCommand: m_searchCommand });
-            document.body.addEventListener('keydown', this.handleSelectCommand);
-        } else
-        {
-            document.body.removeEventListener('keydown', this.handleSelectCommand);
-        }
-        // if (this.m_recommendUl)
-        // {
-        //     this.m_liHover = this.m_recommendUl.firstElementChild;
-        //     console.log(this.m_liHover);
-        //     this.m_liHover.className = 'hover';
 
-        // }
+        }
 
 
     }
@@ -96,6 +83,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
     public handleConfirmInput = (e: React.KeyboardEvent<HTMLInputElement>) =>  
     {
         let m_newHistotyCommand: Array<string> = this.state.historyCommands;
+
         //  enter-13,space-32
         if (this.state.command)
         {
@@ -107,33 +95,37 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 {
                     if (this.state.commands.indexOf(this.state.command) !== -1)
                     {
-                        this.setState({ executeCommand: this.state.command });
                         m_newHistotyCommand.unshift(this.state.command);
-                        this.setState({ historyCommands: m_newHistotyCommand });
-                        this.setState({ command: '' });
+                        this.setState(
+                            {
+                                executeCommand: this.state.command,
+                                command: '',
+                                historyCommands: m_newHistotyCommand,
+                                searchCommand: []
+                            }
+                        );
                     }
-                } else
-                { // 已经有首条命令了，直接执行后续命名
+                }
+                else // 已经有首条命令了，直接执行后续命名
+                {
 
-                    this.setState({ viceCommand: '放弃(U)' });
+                    this.setState({ viceCommand: [{ title: '放弃', keyboard: 'U' }] });
                     this.setState({ command: '' });
                     if (this.state.command === 'U')
                     {
-                        this.setState({ viceCommand: '' })
+                        this.setState({ viceCommand: [] })
                     }
                 }
 
             }
-        } else // 如果没输入内容按空格将用最近用过的命令
+        }
+        else // 如果没输入内容按空格将用最近用过的命令
         {
             if (e.charCode === 32)
             {
                 this.setState({ executeCommand: this.state.historyCommands[0] });
             }
         }
-
-
-
 
     }
     // 是否显示历史命令
@@ -155,64 +147,53 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         this.handleShowHistoryCommand();
         this.setState({ searchCommand: [], command: '' });
     }
-    //方向键选择命令
+    //绑定键盘命令
     public handleSelectCommand = (e: KeyboardEvent) =>
     {
-        let ulContainer: HTMLUListElement;
+        let ulContainer: HTMLUListElement = this.m_recommendUl;
         let m_li: HTMLCollection;
         let historyCommands = this.state.historyCommands;
-        ulContainer = this.m_recommendUl;
         m_li = ulContainer.children;
 
         this.m_liHover = ulContainer.querySelector('.hover');
 
         //↑-38 ，↓-40 esc-27
-        if (e.keyCode === 27) //按esc键
+        if (e.keyCode === 27) //按esc键,清空所有命令
         {
-            this.setState({ executeCommand: '', command: '' });
-        } else if (e.keyCode === 38)
+            this.setState({ executeCommand: '', command: '', searchCommand: [], viceCommand: [] });
+        }
+
+        if (this.state.searchCommand.length > 0)
         {
-            //如果找不到hover的元素，就给第一个hover
-            if (!this.m_liHover)
-            {
-                ulContainer.firstElementChild.className = 'hover';
-            } else
+
+            if (e.keyCode === 38)
             {
                 if (this.m_liHover.previousElementSibling)
                 {
                     this.m_liHover.className = '';
                     this.m_liHover.previousElementSibling.className = 'hover'
-                } else
+                }
+                else
                 {
                     this.m_liHover.className = '';
                     ulContainer.lastElementChild.className = 'hover';
                 }
-
             }
-
-        } else if (e.keyCode === 40)
-        {
-            if (!this.m_liHover)
-            {
-                ulContainer.lastElementChild.className = 'hover';
-            } else
+            else if (e.keyCode === 40)
             {
                 if (this.m_liHover.nextElementSibling)
                 {
                     this.m_liHover.className = '';
                     this.m_liHover.nextElementSibling.className = 'hover';
-                } else
+                }
+                else
                 {
                     this.m_liHover.className = '';
                     ulContainer.firstElementChild.className = 'hover';
                 }
             }
-        } else if (e.keyCode === 13 || e.keyCode === 32)
-        {
-
-            if (this.m_liHover)
+            else if (e.keyCode === 13 || e.keyCode === 32)
             {
-
                 if (!this.state.executeCommand)
                 {
                     historyCommands.push(this.m_liHover.innerHTML);
@@ -221,8 +202,14 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 this.setState({ executeCommand: this.m_liHover.innerHTML });
                 this.setState({ searchCommand: [], command: '' });
             }
-
+        } else
+        {
+            if (e.keyCode === 38)
+            {
+                console.log(this.state.historyCommands[0]);
+            }
         }
+
     }
     //移动命令框
     private moveBox = (x: number, y: number) =>
@@ -249,11 +236,39 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         };
         this.m_box.ondrag = this.m_box.ondragend = event;
     }
+    public handleClick = (e: React.MouseEvent<HTMLElement>) =>
+    {
+
+        let m_key = e.currentTarget.firstElementChild.innerHTML.slice(1, 2);
+        if (m_key === 'U')
+        {
+            this.setState({ viceCommand: [] });
+        }
+    }
+    //鼠标选择命令
+    public handleSelectCom = (e: React.MouseEvent<HTMLUListElement>) =>
+    {
+
+        this.m_liHover = this.m_recommendUl.querySelector('.hover');
+        if (this.m_liHover)
+        {
+            this.m_liHover.className = '';
+        }
+        (e.target as HTMLElement).className = 'hover';
+    }
     componentDidMount()
     {
         this.dragBox();
+        document.body.addEventListener('keydown', this.handleSelectCommand);
     }
-    public render() 
+    componentDidUpdate()
+    {
+        if (this.m_recommendUl.firstElementChild)
+        {
+            this.m_recommendUl.firstElementChild.className = 'hover';
+        }
+    }
+    public render()
     {
 
         return (
@@ -261,6 +276,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 <ul
                     className="recommend-command"
                     ref={ul => { this.m_recommendUl = ul }}
+                    onMouseMove={this.handleSelectCom}
                 >
                     {
                         this.state.searchCommand.map((item: string, index: number) =>
@@ -282,7 +298,20 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                         <span className="pt-icon-standard pt-icon-sort-asc pt-intent-primary"></span>
                     </a>
                     <span className="hint">{this.state.executeCommand}</span>
-                    <span className="hint">{this.state.viceCommand}</span>
+                    {
+                        this.state.viceCommand.map((item, index: number) =>
+                        {
+                            return (
+                                <span key={index}
+                                    className="hint vice-hint"
+                                    onClick={this.handleClick}
+                                >
+                                    [{item.title}<span>({item.keyboard})</span>]
+                                </span>
+                            )
+                        })
+                    }
+
                     <input
                         type="text"
                         placeholder="请输入命令"
