@@ -24,14 +24,21 @@ module.exports = {
     module: {
         rules: [
             // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
-            { test: /\.tsx?$/, exclude: '/node_modules', loader: "awesome-typescript-loader" },
+            {
+                test: /\.tsx?$/,
+                exclude: '/node_modules',
+                loader: "awesome-typescript-loader"
+            },
             // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-            { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
+            {
+                enforce: "pre",
+                test: /\.js$/,
+                loader: "source-map-loader"
+            },
             {
                 test: /\.css$/,
                 exclude: '/node_modules',
-                use: [
-                    {
+                use: [{
                         loader: "style-loader"
                     },
                     {
@@ -50,14 +57,19 @@ module.exports = {
         ]
     },
     devServer: {
-        contentBase: "./dist/",//本地服务器所加载的页面所在的目录
-        historyApiFallback: true,//不跳转
-        inline: true,//实时刷新
+        contentBase: "./dist/", //本地服务器所加载的页面所在的目录
+        historyApiFallback: true, //不跳转
+        inline: true, //实时刷新
         port: "9527"
     },
     plugins: [
 
-        new HtmlWebPackPlugin({ title: "webCAD", template: "./index.html" }),
-        new OpenBrowserPlugin({ url: 'http://localhost:9527/' })
+        new HtmlWebPackPlugin({
+            title: "webCAD",
+            template: "./index.html"
+        }),
+        new OpenBrowserPlugin({
+            url: 'http://localhost:9527/'
+        })
     ],
 };
