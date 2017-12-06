@@ -16,11 +16,14 @@ interface ITodoItemState
     searchCommand: Array<string>, //联想命令库
     executeCommand: string, //所执行的命令
     viceCommand: Array<{ title: string, keyboard: string }>,//副命令
-    pos: React.CSSProperties// 命令框位置
+    pos: React.CSSProperties,// 命令框位置
+    reUlPos: React.CSSProperties, //关联列表位置
+    hiUlPos: React.CSSProperties//历史命令列表位置
 }
-export class InputHint extends React.Component<InputHintProps, ITodoItemState>
+export default class InputHint extends React.Component<InputHintProps, ITodoItemState>
 {
     private m_recommendUl: HTMLUListElement;//关联命令列表
+    private m_historyUl: HTMLUListElement;//历史命令列表
     private m_liHover: Element; // 当前hover的 li
     private m_box: HTMLElement;//移动命令框区
     public state: ITodoItemState;
@@ -33,11 +36,13 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 command: "",
                 historyCommands: [],
                 isShow: { display: 'none' },
+                hiUlPos: { top: '2rem' },
                 commands: ['LINE', 'LINETYPE', 'TR', 'TRANSLATE', 'TEXT1', 'TEXT2', 'TEXT3', 'TEXT4'],
                 searchCommand: [],
                 executeCommand: '',
                 viceCommand: [],
-                pos: { left: 0, top: 0 }
+                pos: { left: 0, top: 0 },
+                reUlPos: { bottom: '2rem' }
             }
     }
     // 获取input输入的命令
@@ -107,9 +112,18 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
     // 点击确认执行命令
     public handleConfirmCommand = (e: React.MouseEvent<HTMLLIElement>) =>
     {
-        this.setState({ executeCommand: e.currentTarget.innerHTML });
-        this.handleShowHistoryCommand();
-        this.setState({ searchCommand: [], command: '' });
+        let historyCommands = this.state.historyCommands;
+        historyCommands.unshift(e.currentTarget.innerHTML);
+        //去掉重复历史命令
+        historyCommands = Array.from(new Set(historyCommands));
+        this.setState(
+            {
+                executeCommand: e.currentTarget.innerHTML,
+                searchCommand: [],
+                command: '',
+                historyCommands
+            }
+        );
     }
     //绑定键盘命令
     public handleSelectCommand = (e: KeyboardEvent) =>
@@ -142,7 +156,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 this.setState({ command: this.state.historyCommands[0].trim() });
                 return;
             }
-            
+
         }
 
         //放下键选择命令函数,des-方向
@@ -177,7 +191,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
             this.setState({ command: this.m_liHover.innerHTML });
         }
 
-        
+
         //如果有关联命令执行以下逻辑
         if (this.state.searchCommand.length > 0)
         {
@@ -209,7 +223,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 }
             }
         }
-        else if (!this.state.executeCommand )  //否则如果没有执行命令
+        else if (!this.state.executeCommand)  //否则如果没有执行命令
         {
             // 如果存在历史命令,方向键切换历史命令
             if (this.state.historyCommands.length > 0)
@@ -229,13 +243,13 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                     this.m_i--;
                 }
             }
-        }    
+        }
 
         //确认选中命令
         if (e.keyCode === 13 || e.keyCode === 32)
         {
             //如果没有确认执行命令，运行当前输入的命令，并将命令添加到历史
-            if (!this.state.executeCommand )
+            if (!this.state.executeCommand)
             {
 
                 if (this.state.command && this.state.commands.indexOf(this.state.command.trim()) !== -1)
@@ -256,10 +270,10 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
             else // 已经有首条命令了，直接执行后续命名
             {
                 //TODO:发送输入命令
-                
+
                 if (this.state.command === 'U')
                 {
-                    this.setState({ viceCommand: [],command:'' });
+                    this.setState({ viceCommand: [], command: '' });
                     return;
                 }
                 this.setState(
@@ -268,7 +282,7 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                         command: ''
                     }
                 );
-                
+
             }
 
         }
@@ -292,11 +306,14 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                 this.m_box.parentElement.style.width = '80%';
                 this.setState({ pos: { left: e.clientX + 'px', top: e.clientY + 'px' } });
             }
+            //调整位置
+            this.handleAdjustPos();
 
         }
         this.m_box.onmousedown = () =>
         {
             document.addEventListener('mousemove', movePos);
+            
         }
         this.m_box.onmouseup = () =>
         {
@@ -324,10 +341,52 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
         }
         (e.target as HTMLElement).className = 'hover';
     }
+    //获取元素到屏幕的距离
+    public handleGetElHeight = (el: HTMLElement) =>
+    {
+        let m_actualTop: number = el.offsetTop; //元素离顶部高度
+        let m_current = el.offsetParent;
+
+        while (m_current !== null)
+        {
+            m_actualTop += (m_current as HTMLElement).offsetTop;
+            m_current = (m_current as HTMLElement).offsetParent;
+        }
+        let m_actualBottom: number = window.innerHeight - m_actualTop - el.clientHeight;//元素离底部高度
+
+        let m_outPutDes = { m_actualTop, m_actualBottom };//输出距离对象
+        return m_outPutDes;
+    }
+    public handleAdjustPos = () =>
+    {
+        let m_reDes = this.handleGetElHeight(this.m_recommendUl);//关联命令列表
+        let m_hiDes = this.handleGetElHeight(this.m_historyUl); //历史命令列表
+        if (m_reDes.m_actualTop <= 0)
+        {
+            this.setState({ reUlPos: { top: '2rem' } });
+            return;
+        }
+        if (m_reDes.m_actualBottom <= 0)
+        {
+            this.setState({ reUlPos: { bottom: '2rem' } });
+            return;
+        }
+        if (m_hiDes.m_actualTop <= 0)
+        {
+            this.setState({ hiUlPos: { top: '2rem' } });
+        }
+        if (m_hiDes.m_actualBottom <= 0)
+        {
+            this.setState({ hiUlPos: { bottom: '2rem' } });
+
+        }
+    }
     componentDidMount()
     {
         this.dragBox();
         document.body.addEventListener('keydown', this.handleSelectCommand);
+        //调整位置
+        this.handleAdjustPos();
     }
     componentDidUpdate()
     {
@@ -342,34 +401,36 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
 
             }
         }
-
+        
     }
     public render()
     {
 
         return (
             <div id="input-hint" style={this.state.pos}>
-                <ul
-                    className="recommend-command"
-                    ref={ul => { this.m_recommendUl = ul }}
-                    onMouseMove={this.handleSelectCom}
-                >
-                    {
-                        this.state.searchCommand.map((item: string, index: number) =>
-                        {
-                            return <li onClick={this.handleConfirmCommand} key={index}>{item}</li>
-                        })
-                    }
-                </ul>
                 <div
                     className="set"
                     ref={el => { this.m_box = el }}
+
                 >
                     <a >
                         <span className="pt-icon-standard pt-icon-drag-handle-vertical"></span>
                     </a>
                 </div>
                 <div className="input">
+                    <ul
+                        className="recommend-command"
+                        ref={ul => { this.m_recommendUl = ul }}
+                        onMouseMove={this.handleSelectCom}
+                        style={this.state.reUlPos}
+                    >
+                        {
+                            this.state.searchCommand.map((item: string, index: number) =>
+                            {
+                                return <li onClick={this.handleConfirmCommand} key={index}>{item}</li>
+                            })
+                        }
+                    </ul>
                     <a onClick={this.handleShowHistoryCommand}>
                         <span className="pt-icon-standard pt-icon-sort-asc pt-intent-primary"></span>
                     </a>
@@ -396,16 +457,19 @@ export class InputHint extends React.Component<InputHintProps, ITodoItemState>
                         onChange={this.handleGetInputValue}
                         value={this.state.command}
                     />
-                </div>
-                <ul className="history-command" style={this.state.isShow}>
-                    {
-                        this.state.historyCommands.map((item: string, index: number) =>
+                    <ul
+                        className="history-command"
+                        style={{...this.state.isShow,...this.state.hiUlPos}}
+                        ref={ul => { this.m_historyUl = ul }}
+                    >
                         {
-                            return <li onClick={this.handleConfirmCommand} key={index}>{item}</li>
-                        })
-                    }
-                </ul>
-
+                            this.state.historyCommands.map((item: string, index: number) =>
+                            {
+                                return <li onClick={this.handleConfirmCommand} key={index}>{item}</li>
+                            })
+                        }
+                    </ul>
+                </div>
             </div>
         );
     }

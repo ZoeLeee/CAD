@@ -56,7 +56,7 @@ a {
 }
 
 #input-hint .input {
-  width: 95%;
+  width: 98%;
   background: #fff;
 }
 
@@ -65,7 +65,7 @@ a {
 }
 
 #input-hint .set {
-  width: 5%;
+  width: 2%;
   color: #fff;
   background: #484A4C;
 }
@@ -75,8 +75,10 @@ a {
 }
 
 #input-hint ul {
+  position: absolute;
+  left: -1rem;
   list-style: none;
-  width: 15rem;
+  width: 10rem;
   background: #fff;
   margin: 0 2rem;
   padding: 0;

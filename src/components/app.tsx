@@ -1,9 +1,11 @@
-import HintBlock from './HintBlock/HintBlock';
 import * as React from 'react';
-import { InputHint } from './InputHint/InputHint';
+
+import HintBlock from './HintBlock/HintBlock';
+
+import InputHint from './InputHint/InputHint';
 
 
-export class App extends React.Component
+export default class App extends React.Component
 {
     render() 
     {
